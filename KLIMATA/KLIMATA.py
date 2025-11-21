@@ -85,17 +85,28 @@ layer_option = st.sidebar.radio(
 )
 
 # --- Load GeoJSON files ---
-with open("climate_risk.geojson", "r") as f:
-    urban = json.load(f)
+import os
 
-with open("iloilo_pop.geojson", "r") as f:
-    barangays = json.load(f)
+# Get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-with open("iloilo_infra3.0.geojson", "r") as f:
-    amenities = json.load(f)
+# Load GeoJSON files with proper error handling
+try:
+    with open(os.path.join(script_dir, "climate_risk.geojson"), "r") as f:
+        urban = json.load(f)
 
-with open("iloilo_cli3.0.geojson", "r") as f:
-    climate = json.load(f)
+    with open(os.path.join(script_dir, "iloilo_pop.geojson"), "r") as f:
+        barangays = json.load(f)
+
+    with open(os.path.join(script_dir, "iloilo_infra3.0.geojson"), "r") as f:
+        amenities = json.load(f)
+
+    with open(os.path.join(script_dir, "iloilo_cli3.0.geojson"), "r") as f:
+        climate = json.load(f)
+except FileNotFoundError as e:
+    st.error(f"Error loading data files: {e}")
+    st.info("Please ensure all GeoJSON files are in the same directory as KLIMATA.py")
+    st.stop()
 
 
 # ======================================================
