@@ -6,6 +6,7 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 import json
+import os
 
 # Set page config to wide layout
 st.set_page_config(layout="wide")
@@ -48,9 +49,9 @@ sidebar_bg = """
 """
 st.markdown(sidebar_bg, unsafe_allow_html=True)
 
-st.set_page_config(layout="wide")  # Make the Streamlit page use full width
-
-st.sidebar.image("klimata_logo.png", width=1000)
+# Load logo from GitHub URL
+st.sidebar.image("https://raw.githubusercontent.com/nightsamuraiii/bernoulli-2025/refs/heads/main/KLIMATA/klimata_logo.png", width=1000)
+    
 st.markdown("""
 <style>
 
@@ -288,7 +289,7 @@ elif layer_option == "Population Layer":
         background-color:#f9f9f9; 
         font-size:16px;
     ">
-        The map shows that Iloilo City’s 473,000 residents are largely concentrated in <b>coastal barangays</b>, particularly in Molo and City Proper, where densities reach over 9,000 people per barangay.
+        The map shows that Iloilo City's 473,000 residents are largely concentrated in <b>coastal barangays</b>, particularly in Molo and City Proper, where densities reach over 9,000 people per barangay.
     </div>
     """,
     unsafe_allow_html=True
@@ -514,6 +515,3 @@ folium.LayerControl().add_to(m)
 # ======================================================
 
 st_folium(m, width=2000, height=1000)
-
-
-
