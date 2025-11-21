@@ -6,9 +6,11 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 import json
+import os
 
-# Set page config to wide layout
-st.set_page_config(layout="wide")
+# Set page config to wide layout - MUST BE FIRST
+st.set_page_config(layout="wide", page_title="Amenity Dashboard")
+
 st.title("Amenity Dashboard")
 st.markdown("*An Essential Guide of Barangay Amenities!*")
 
@@ -47,7 +49,20 @@ sidebar_bg = """
 </style>
 """
 st.markdown(sidebar_bg, unsafe_allow_html=True)
-st.sidebar.image("klimata_logo.png", width=1000)
+
+# --- FIX: Robust Path Handling for Logo ---
+try:
+    # Get the directory where this script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to the root directory
+    parent_dir = os.path.dirname(current_dir)
+    # Construct the full path to the image
+    logo_path = os.path.join(parent_dir, "klimata_logo.png")
+    
+    # Use use_column_width for better sidebar scaling
+    st.sidebar.image(logo_path, use_column_width=True)
+except Exception as e:
+    st.sidebar.error("Logo not found. Please check the file path.")
 
 st.markdown("""
 <style>
