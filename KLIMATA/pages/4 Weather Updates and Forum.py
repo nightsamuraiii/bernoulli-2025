@@ -1,10 +1,27 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import sqlite3
+import os
+
+# --- FIX 1: This must be the VERY FIRST Streamlit command ---
+st.set_page_config(layout="wide", page_title="Iloilo City Weather")
 
 st.title("Iloilo City Real-time Weather")
 st.markdown("*Catch the freshest, real-time weather updates—right here!*")
-st.sidebar.image("klimata_logo.png", width=1000)
+
+# --- FIX 2: Robust Path Handling for the Logo ---
+# We assume the logo is in the root folder (one level up from 'pages')
+try:
+    # Get the folder where THIS script lives
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to the root folder
+    parent_dir = os.path.dirname(current_dir)
+    # Combine to get the absolute path
+    logo_path = os.path.join(parent_dir, "klimata_logo.png")
+    
+    st.sidebar.image(logo_path, use_column_width=True) 
+except Exception as e:
+    st.sidebar.error("Logo not found. Please ensure 'klimata_logo.png' is in the main folder.")
 
 st.markdown("""
 <style>
@@ -27,7 +44,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(layout="wide")  # Ensure wide layout
 
 # Hide header, menu, and footer
 st.markdown("""
@@ -69,9 +85,9 @@ components.html("""
     border-radius: 15px;
     box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
 ">
-    <iframe
+    <iframe 
       src="https://embed.windy.com/embed2.html?lat=10.72&lon=122.56&zoom=10&level=surface&overlay=gust&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&detailLat=10.72&detailLon=122.56"
-      style="border:none; width:100%; height:80vh; border-radius:10px;"
+      style="border:none; width:100%; height:80vh; border-radius:10px;" 
       frameborder="0"
       allowfullscreen>
     </iframe>
@@ -81,7 +97,10 @@ components.html("""
 # -------------------------
 # Database setup
 # -------------------------
-conn = sqlite3.connect("theforum.db")
+# Use absolute path for DB as well to avoid it resetting or getting lost
+db_path = os.path.join(current_dir, "theforum.db")
+
+conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
 c.execute('''
@@ -94,6 +113,7 @@ CREATE TABLE IF NOT EXISTS posts (
 ''')
 conn.commit()
 conn.close()
+
 # -------------------------
 # Forum UI
 # -------------------------
@@ -107,7 +127,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Reconnect
-conn = sqlite3.connect("theforum.db", check_same_thread=False)
+conn = sqlite3.connect(db_path, check_same_thread=False)
 c = conn.cursor()
 
 
@@ -145,6 +165,7 @@ if st.button("Post", key="post_button"):
         c.execute("INSERT INTO posts (username, content) VALUES (?, ?)", (username, content))
         conn.commit()
         st.success("Your message has been posted!")
+        st.rerun() # Rerun to show the new post immediately
     else:
         st.warning("Please enter your name and message before posting.")
 
