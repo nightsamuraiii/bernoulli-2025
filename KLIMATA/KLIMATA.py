@@ -50,7 +50,6 @@ st.markdown(sidebar_bg, unsafe_allow_html=True)
 
 st.set_page_config(layout="wide")  # Make the Streamlit page use full width
 
-st.sidebar.image("klimata_logo.png", width=100)
 st.markdown("""
 <style>
 
@@ -514,6 +513,7 @@ folium.LayerControl().add_to(m)
 # ======================================================
 
 st_folium(m, width=2000, height=1000)
+
 
 
 
