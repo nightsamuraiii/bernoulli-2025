@@ -6,9 +6,11 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 import json
+import os
 
-# Set page config to wide layout
-st.set_page_config(layout="wide")
+# --- FIX 1: Page Config must be the first Streamlit command ---
+st.set_page_config(layout="wide", page_title="Climate Vulnerability Index Table")
+
 st.title("Climate Vulnerability Index Table")
 st.markdown("*Inside the Lab: Decoding the Climate Vulnerability Index!*")
 
@@ -21,7 +23,6 @@ hide_streamlit_style = """
     </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
 
 page_bg = """
 <style>
@@ -47,7 +48,19 @@ sidebar_bg = """
 </style>
 """
 st.markdown(sidebar_bg, unsafe_allow_html=True)
-st.sidebar.image("klimata_logo.png", width=1000)
+
+# --- FIX 2: Robust Path Handling for Logo ---
+try:
+    # Get the directory where this script is located (pages folder)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to the root directory
+    parent_dir = os.path.dirname(current_dir)
+    # Construct the full path to the image
+    logo_path = os.path.join(parent_dir, "klimata_logo.png")
+    
+    st.sidebar.image(logo_path, use_column_width=True)
+except Exception as e:
+    st.sidebar.error("Logo not found. Please check the file path.")
 
 st.markdown("""
 <style>
@@ -70,61 +83,67 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-df = pd.read_csv("RISK_TABLE.csv")
+# --- Potential Fix for CSV ---
+# If RISK_TABLE.csv is also in the root folder, you might need to use parent_dir for it too.
+# For now, we keep it as is, but wrapped in a try-except to be safe.
+try:
+    df = pd.read_csv("RISK_TABLE.csv")
+    
+    # Style DataFrame with Pandas Styler
+    styled_df = (
+        df.style
+          .set_table_styles([
+              {'selector': 'thead',
+               'props': [
+                   ('background-color', '#D2E8BA'),
+                   ('color', 'black'),
+                   ('font-weight', 'bold'),
+                   ('border', '1px solid black')
+               ]},
+              {'selector': 'td',
+               'props': [
+                   ('border', '1px solid black'),
+                   ('padding', '8px')
+               ]},
+              {'selector': 'table',
+               'props': [
+                   ('border-collapse', 'collapse'),
+                   ('table-layout', 'fixed'),
+                   ('text-align', 'center')
+               ]}
+          ])
+    )
 
-# Style DataFrame with Pandas Styler
-styled_df = (
-    df.style
-      .set_table_styles([
-          {'selector': 'thead',
-           'props': [
-               ('background-color', '#D2E8BA'),
-               ('color', 'black'),
-               ('font-weight', 'bold'),
-               ('border', '1px solid black')
-           ]},
-          {'selector': 'td',
-           'props': [
-               ('border', '1px solid black'),
-               ('padding', '8px')
-           ]},
-          {'selector': 'table',
-           'props': [
-               ('border-collapse', 'collapse'),
-               ('table-layout', 'fixed'),
-               ('text-align', 'center')
-           ]}
-      ])
-)
+    # Render in a container that fits the table width exactly
+    st.markdown(
+        f"""
+        <div style="
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            display: inline-block;   /* container shrinks to table width */
+            max-height: 500px;
+            overflow: auto;
+        ">
+            {styled_df.to_html(render_links=True, escape=False)}
+        </div>
 
-# Render in a container that fits the table width exactly
-st.markdown(
-    f"""
-    <div style="
-        background-color: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-        display: inline-block;   /* container shrinks to table width */
-        max-height: 500px;
-        overflow: auto;
-    ">
-        {styled_df.to_html(render_links=True, escape=False)}
-    </div>
-
-    <style>
-        table {{
-            width: auto;           /* table width adapts to content */
-            table-layout: fixed;   /* evenly stretch columns */
-        }}
-        th, td {{
-            text-align: center;
-            word-wrap: break-word;
-        }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+        <style>
+            table {{
+                width: auto;           /* table width adapts to content */
+                table-layout: fixed;   /* evenly stretch columns */
+            }}
+            th, td {{
+                text-align: center;
+                word-wrap: break-word;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+except FileNotFoundError:
+    st.error("⚠️ Could not find 'RISK_TABLE.csv'. Please ensure the file is uploaded to the repository.")
 
 st.markdown("### Access the Iloilo City Datasets here!")
 
