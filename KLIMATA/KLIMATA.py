@@ -7,8 +7,9 @@ import folium
 from streamlit_folium import st_folium
 import json
 
-# Set page config to wide layout
+# Set page config to wide layout (ONLY ONCE - MUST BE FIRST)
 st.set_page_config(layout="wide")
+
 st.title("KLIMATA ILOILO")
 st.markdown("*A Climate Vulnerability Index for the Ilonggo People!*")
 
@@ -22,7 +23,6 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-
 page_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
@@ -33,7 +33,6 @@ page_bg = """
 }
 </style>
 """
-
 st.markdown(page_bg, unsafe_allow_html=True)
 
 sidebar_bg = """
@@ -48,12 +47,11 @@ sidebar_bg = """
 """
 st.markdown(sidebar_bg, unsafe_allow_html=True)
 
-st.set_page_config(layout="wide")  # Make the Streamlit page use full width
+# Load logo from GitHub URL (FIXED)
+st.sidebar.image("https://raw.githubusercontent.com/nightsamuraiii/bernoulli-2025/refs/heads/main/KLIMATA/klimata_logo.png", width=1000)
 
-st.sidebar.image("klimata_logo.png", width=1000)
 st.markdown("""
 <style>
-
 /* --- Make sidebar text white --- */
 [data-testid="stSidebar"] * {
     color: white !important;
@@ -68,7 +66,6 @@ st.markdown("""
 [data-testid="stSidebar"] {
     background-color: #0D0D0D !important;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -96,7 +93,6 @@ with open("iloilo_infra3.0.geojson", "r") as f:
 with open("iloilo_cli3.0.geojson", "r") as f:
     climate = json.load(f)
 
-
 # ======================================================
 # QUANTILES FOR COLOR GRADIENTS
 # ======================================================
@@ -112,7 +108,6 @@ infra_quantiles = np.quantile(infra_values, [0, 0.33, 0.66, 1.0])
 # Climate Exposure quantiles
 clim_values = [f['properties'].get('climate_exposure_score', 0) for f in climate['features']]
 clim_quantiles = np.quantile(clim_values, [0, 0.33, 0.66, 1.0])
-
 
 # ======================================================
 # COLOR FUNCTIONS
@@ -139,36 +134,36 @@ risk_colors = {
 # BASE MAP
 # ======================================================
 m = folium.Map(location=[10.72, 122.5571], zoom_start=13.46)
+
 # ======================================================
 # --- 1. URBAN RISK LAYER (FIRST) ---
 # ======================================================
 if layer_option == "Climate Vulnerability":
-
     col1, col2, col3, col4 = st.columns(4)
 
-# Common CSS for all boxes with image background
+    # Common CSS for all boxes with image background
     kpi_box_style = """
 <div style="
     background-image: url('https://encycolorpedia.com/d2e8ba.png');
     background-position: top;
     background-size: cover;
     border-radius:20px;
-    padding:0px 20px 15px 20px;  /* increased top padding */
+    padding:0px 20px 15px 20px;
     text-align:center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     border: 2px solid black;
     transition: transform 0.2s;
-    height:150px;   /* slightly taller for spacing */
+    height:150px;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start; /* place text toward the top area but lower than before */
+    justify-content:flex-start;
 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
     <h4 style="margin-top:10px; font-size:22px; color:#000000;">{title}</h4>
     <h2 style="margin-top:5px; font-size:55px; font-weight:bold; color:#000000;">{value}</h2>
 </div>
 """
 
-# Example boxes
+    # Example boxes
     with col1:
         st.markdown(kpi_box_style.format(title="Barangays", value="180"), unsafe_allow_html=True)
 
@@ -183,26 +178,26 @@ if layer_option == "Climate Vulnerability":
 
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-
     st.markdown(
-    """
-    <div style="
-        border:1px solid #ccc; 
-        padding:10px; 
-        border-radius:5px; 
-        background-color:#f9f9f9; 
-        font-size:16px;
-    ">
-        The <b>Climate Vulnerability Index</b> combines factors like exposure, population, vegetation, infrastructure, wealth, and coastal proximity to measure risk levels. It helps identify which barangays are most vulnerable to climate impacts and guides adaptation planning.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style="
+            border:1px solid #ccc; 
+            padding:10px; 
+            border-radius:5px; 
+            background-color:#f9f9f9; 
+            font-size:16px;
+        ">
+            The <b>Climate Vulnerability Index</b> combines factors like exposure, population, vegetation, infrastructure, wealth, and coastal proximity to measure risk levels. It helps identify which barangays are most vulnerable to climate impacts and guides adaptation planning.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     folium.GeoJson(
         urban,
         name="Climate Vulnerability Layer",
         style_function=lambda f: {
-            "fillColor": risk_colors.get(f['properties'].get('risk_label', "Middle Risk"), "gray"),
+            "fillColor": risk_colors.get(f['properties'].get('risk_label', "Medium Risk"), "gray"),
             "color": "black",
             "weight": 1,
             "fillOpacity": 0.6,
@@ -217,7 +212,7 @@ if layer_option == "Climate Vulnerability":
                 "rwi_risk",
                 "ndvi_risk",
                 "coast_risk",
-                "pop_risk"      # kept but renamed in alias
+                "pop_risk"
             ],
             aliases=[
                 "Barangay:",
@@ -234,66 +229,65 @@ if layer_option == "Climate Vulnerability":
         )
     ).add_to(m)
 
-
 # ======================================================
 # 2. POPULATION LAYER
 # ======================================================
 elif layer_option == "Population Layer":
-        col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-# Common CSS for all boxes with image background
-        kpi_box_style = """
+    # Common CSS for all boxes with image background
+    kpi_box_style = """
 <div style="
     background-image: url('https://encycolorpedia.com/d2e8ba.png');
     background-position: top;
     background-size: cover;
     border-radius:20px;
-    padding:0px 20px 15px 20px;  /* increased top padding */
+    padding:0px 20px 15px 20px;
     text-align:center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     border: 2px solid black;
     transition: transform 0.2s;
-    height:150px;   /* slightly taller for spacing */
+    height:150px;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start; /* place text toward the top area but lower than before */
+    justify-content:flex-start;
 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
     <h4 style="margin-top:10px; font-size:22px; color:#000000;">{title}</h4>
     <h2 style="margin-top:5px; font-size:55px; font-weight:bold; color:#000000;">{value}</h2>
 </div>
 """
 
-# Example boxes
-        with col1:
-            st.markdown(kpi_box_style.format(title="Population", value="473,728"), unsafe_allow_html=True)
+    # Example boxes
+    with col1:
+        st.markdown(kpi_box_style.format(title="Population", value="473,728"), unsafe_allow_html=True)
 
-        with col2:
-            st.markdown(kpi_box_style.format(title="Average per Barangay", value="2315.16"), unsafe_allow_html=True)
+    with col2:
+        st.markdown(kpi_box_style.format(title="Average per Barangay", value="2315.16"), unsafe_allow_html=True)
 
-        with col3:
-            st.markdown(kpi_box_style.format(title="Highest Populated Barangay", value="10157.33"), unsafe_allow_html=True)
+    with col3:
+        st.markdown(kpi_box_style.format(title="Highest Populated Barangay", value="10157.33"), unsafe_allow_html=True)
 
-        with col4:
-            st.markdown(kpi_box_style.format(title="Lowest Populated Barangay", value="153.71"), unsafe_allow_html=True)
+    with col4:
+        st.markdown(kpi_box_style.format(title="Lowest Populated Barangay", value="153.71"), unsafe_allow_html=True)
 
-        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-   
-        
-        st.markdown(
-    """
-    <div style="
-        border:1px solid #ccc; 
-        padding:10px; 
-        border-radius:5px; 
-        background-color:#f9f9f9; 
-        font-size:16px;
-    ">
-        The map shows that Iloilo City’s 473,000 residents are largely concentrated in <b>coastal barangays</b>, particularly in Molo and City Proper, where densities reach over 9,000 people per barangay.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-        folium.GeoJson(
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div style="
+            border:1px solid #ccc; 
+            padding:10px; 
+            border-radius:5px; 
+            background-color:#f9f9f9; 
+            font-size:16px;
+        ">
+            The map shows that Iloilo City's 473,000 residents are largely concentrated in <b>coastal barangays</b>, particularly in Molo and City Proper, where densities reach over 9,000 people per barangay.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    folium.GeoJson(
         barangays,
         name="Population",
         style_function=lambda f: {
@@ -309,37 +303,35 @@ elif layer_option == "Population Layer":
         )
     ).add_to(m)
 
-
 # ======================================================
 # 3. AMENITY RISK LAYER
 # ======================================================
 elif layer_option == "Amenity Risk Layer":
-
     col1, col2, col3, col4 = st.columns(4)
 
-# Common CSS for all boxes with image background
+    # Common CSS for all boxes with image background
     kpi_box_style = """
 <div style="
     background-image: url('https://encycolorpedia.com/d2e8ba.png');
     background-position: top;
     background-size: cover;
     border-radius:20px;
-    padding:0px 20px 15px 20px;  /* increased top padding */
+    padding:0px 20px 15px 20px;
     text-align:center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     border: 2px solid black;
     transition: transform 0.2s;
-    height:150px;   /* slightly taller for spacing */
+    height:150px;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start; /* place text toward the top area but lower than before */
+    justify-content:flex-start;
 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
     <h4 style="margin-top:10px; font-size:22px; color:#000000;">{title}</h4>
     <h2 style="margin-top:5px; font-size:55px; font-weight:bold; color:#000000;">{value}</h2>
 </div>
 """
 
-# Example boxes
+    # Example boxes
     with col1:
         st.markdown(kpi_box_style.format(title="Avg. Distance to Shelter (m)", value="967.28m"), unsafe_allow_html=True)
 
@@ -347,7 +339,7 @@ elif layer_option == "Amenity Risk Layer":
         st.markdown(kpi_box_style.format(title="Avg. Distance to Community Center (m)", value="805.45m"), unsafe_allow_html=True)
 
     with col3:
-            st.markdown(kpi_box_style.format(title="Population % near Health Center (5min)", value="88.17%"), unsafe_allow_html=True)
+        st.markdown(kpi_box_style.format(title="Population % near Health Center (5min)", value="88.17%"), unsafe_allow_html=True)
 
     with col4:
         st.markdown(kpi_box_style.format(title="Population % near Hospital (5min)", value="48.72%"), unsafe_allow_html=True)
@@ -355,21 +347,21 @@ elif layer_option == "Amenity Risk Layer":
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
     
     st.markdown(
-    """
-    <div style="
-        border:1px solid #ccc; 
-        padding:10px; 
-        border-radius:5px; 
-        background-color:#f9f9f9; 
-        font-size:16px;
-    ">
-        The <b>Amenity Risk Index</b> is a composite score that combines health access and amenity distances 
-        for a barangay, weighted by their relative importance. Higher values indicate better protective 
-        infrastructure. (m = meters)
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style="
+            border:1px solid #ccc; 
+            padding:10px; 
+            border-radius:5px; 
+            background-color:#f9f9f9; 
+            font-size:16px;
+        ">
+            The <b>Amenity Risk Index</b> is a composite score that combines health access and amenity distances 
+            for a barangay, weighted by their relative importance. Higher values indicate better protective 
+            infrastructure. (m = meters)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     folium.GeoJson(
         amenities,
@@ -402,37 +394,35 @@ elif layer_option == "Amenity Risk Layer":
         )
     ).add_to(m)
 
-
 # ======================================================
 # 4. CLIMATE EXPOSURE LAYER
 # ======================================================
 elif layer_option == "Climate Exposure Layer":
-
     col1, col2, col3, col4 = st.columns(4)
 
-# Common CSS for all boxes with image background
+    # Common CSS for all boxes with image background
     kpi_box_style = """
 <div style="
     background-image: url('https://encycolorpedia.com/d2e8ba.png');
     background-position: top;
     background-size: cover;
     border-radius:20px;
-    padding:0px 20px 15px 20px;  /* increased top padding */
+    padding:0px 20px 15px 20px;
     text-align:center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     border: 2px solid black;
     transition: transform 0.2s;
-    height:150px;   /* slightly taller for spacing */
+    height:150px;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start; /* place text toward the top area but lower than before */
+    justify-content:flex-start;
 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
     <h4 style="margin-top:10px; font-size:22px; color:#000000;">{title}</h4>
     <h2 style="margin-top:5px; font-size:55px; font-weight:bold; color:#000000;">{value}</h2>
 </div>
 """
 
-# Example boxes
+    # Example boxes
     with col1:
         st.markdown(kpi_box_style.format(title="Avg. Heat Index", value="30.37°C"), unsafe_allow_html=True)
 
@@ -440,28 +430,28 @@ elif layer_option == "Climate Exposure Layer":
         st.markdown(kpi_box_style.format(title="Avg. Rainfall Estimate", value="6.45mm"), unsafe_allow_html=True)
 
     with col3:
-            st.markdown(kpi_box_style.format(title="Avg. PM2.5", value="13.17"), unsafe_allow_html=True)
+        st.markdown(kpi_box_style.format(title="Avg. PM2.5", value="13.17"), unsafe_allow_html=True)
 
     with col4:
         st.markdown(kpi_box_style.format(title="Avg PM10", value="19.18"), unsafe_allow_html=True)
 
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-   
 
     st.markdown(
-    """
-    <div style="
-        border:1px solid #ccc; 
-        padding:10px; 
-        border-radius:5px; 
-        background-color:#f9f9f9; 
-        font-size:16px;
-    ">
-        The <b>Climate Exposure Score</b> measures how much a specific area is exposed to climate-related hazards, such as heat, rainfall extremes, or air pollution. Higher scores indicate greater exposure.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style="
+            border:1px solid #ccc; 
+            padding:10px; 
+            border-radius:5px; 
+            background-color:#f9f9f9; 
+            font-size:16px;
+        ">
+            The <b>Climate Exposure Score</b> measures how much a specific area is exposed to climate-related hazards, such as heat, rainfall extremes, or air pollution. Higher scores indicate greater exposure.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     folium.GeoJson(
         climate,
         name="Climate Exposure Layer",
@@ -503,7 +493,6 @@ elif layer_option == "Climate Exposure Layer":
         )
     ).add_to(m)
 
-
 # ======================================================
 # LAYER CONTROL
 # ======================================================
@@ -512,8 +501,4 @@ folium.LayerControl().add_to(m)
 # ======================================================
 # DISPLAY MAP
 # ======================================================
-
 st_folium(m, width=2000, height=1000)
-
-
-
