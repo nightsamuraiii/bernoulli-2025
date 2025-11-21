@@ -47,7 +47,7 @@ sidebar_bg = """
 }
 </style>
 """
-st.sidebar.image("klimata_logo.png", width=1000)
+st.sidebar.image("https://raw.githubusercontent.com/nightsamuraiii/bernoulli-2025/refs/heads/main/KLIMATA/klimata_logo.png", width=1000)
 st.markdown(sidebar_bg, unsafe_allow_html=True)
 
 st.markdown("""
@@ -79,8 +79,16 @@ section[data-testid="stSidebar"] .stSelectbox .css-1wa3eu0-placeholder {
 """, unsafe_allow_html=True)
 
 # --- Load Urban Risk GeoJSON ---
-with open("climate_risk.geojson", "r") as f:
-    urban = json.load(f)
+# Get the parent directory (go up one level from pages/ to main KLIMATA directory)
+script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    with open(os.path.join(script_dir, "climate_risk.geojson"), "r") as f:
+        urban = json.load(f)
+except FileNotFoundError as e:
+    st.error(f"Error loading data file: {e}")
+    st.info("Please ensure climate_risk.geojson is in the KLIMATA directory")
+    st.stop()
 
 # --- Sidebar: search for barangay ---
 barangay_names = [feature['properties']['location_adm4_en'] for feature in urban['features']]
