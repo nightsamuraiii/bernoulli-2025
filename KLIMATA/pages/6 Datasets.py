@@ -49,18 +49,33 @@ sidebar_bg = """
 """
 st.markdown(sidebar_bg, unsafe_allow_html=True)
 
-# --- FIX 2: Robust Path Handling for Logo ---
+# --- Determine Directories ---
 try:
     # Get the directory where this script is located (pages folder)
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Go up one level to the root directory
     parent_dir = os.path.dirname(current_dir)
-    # Construct the full path to the image
+except Exception as e:
+    # Fallback if __file__ is not defined
+    current_dir = os.getcwd()
+    parent_dir = os.getcwd()
+
+# --- FIX 2: Robust Path Handling for Logo ---
+try:
+    # Construct the full path to the image (assuming it's in root)
     logo_path = os.path.join(parent_dir, "klimata_logo.png")
     
-    st.sidebar.image(logo_path, use_column_width=True)
+    if os.path.exists(logo_path):
+        st.sidebar.image(logo_path, use_column_width=True)
+    else:
+        # Fallback: try looking in current folder just in case
+        logo_path_local = os.path.join(current_dir, "klimata_logo.png")
+        if os.path.exists(logo_path_local):
+             st.sidebar.image(logo_path_local, use_column_width=True)
+        else:
+             st.sidebar.error("Logo not found at: " + logo_path)
 except Exception as e:
-    st.sidebar.error("Logo not found. Please check the file path.")
+    st.sidebar.error("Error loading logo.")
 
 st.markdown("""
 <style>
@@ -83,12 +98,26 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Potential Fix for CSV ---
-# If RISK_TABLE.csv is also in the root folder, you might need to use parent_dir for it too.
-# For now, we keep it as is, but wrapped in a try-except to be safe.
-try:
-    df = pd.read_csv("RISK_TABLE.csv")
-    
+# --- FIX 3: Robust Path Handling for CSV ---
+csv_filename = "RISK_TABLE.csv"
+csv_path_root = os.path.join(parent_dir, csv_filename)
+csv_path_local = os.path.join(current_dir, csv_filename)
+
+df = None
+
+# Try finding the file in likely locations
+if os.path.exists(csv_path_root):
+    df = pd.read_csv(csv_path_root)
+elif os.path.exists(csv_path_local):
+    df = pd.read_csv(csv_path_local)
+else:
+    # Try loading directly (fallback for some cloud environments)
+    try:
+        df = pd.read_csv(csv_filename)
+    except FileNotFoundError:
+         st.error(f"⚠️ Could not find '{csv_filename}'. Please ensure it is uploaded to the main folder or the pages folder.")
+
+if df is not None:
     # Style DataFrame with Pandas Styler
     styled_df = (
         df.style
@@ -142,8 +171,6 @@ try:
         """,
         unsafe_allow_html=True
     )
-except FileNotFoundError:
-    st.error("⚠️ Could not find 'RISK_TABLE.csv'. Please ensure the file is uploaded to the repository.")
 
 st.markdown("### Access the Iloilo City Datasets here!")
 
